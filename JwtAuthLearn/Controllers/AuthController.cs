@@ -17,13 +17,19 @@ namespace JwtAuthLearn.Controllers
     public class AuthController(IAuthService authService) : ControllerBase
     {
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(UserDto request)
+        public async Task<ActionResult<UserResponseDto>> Register(UserDto request)
         {
             var user = await authService.RegisterAsync(request);
+
             if(user is null)
                 return BadRequest("User already exists");
 
-            return Ok(user);
+            return Ok(new UserResponseDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Role = user.Role
+            });
         }
 
         [HttpPost("login")]
@@ -31,7 +37,7 @@ namespace JwtAuthLearn.Controllers
         {
             var result = await authService.LoginAsync(request);
 
-            if(result is null)
+            if (result is null)
                 return BadRequest("Invalid username or password.");
 
             return Ok(result);
@@ -40,26 +46,49 @@ namespace JwtAuthLearn.Controllers
         [HttpPost("refresh-token")]
         public async Task<ActionResult<TokenResponseDto>> RefreshToken(RefreshTokenRequestDto request)
         {
-            var result = await authService.RefreshTokensAsync(request);
-            if (result is null || result.AccessToken is null || result.RefreshToken is null)
+            var result =
+                await authService.RefreshTokensAsync(request);
+
+            if (result is null ||
+                result.AccessToken is null ||
+                result.RefreshToken is null)
+            {
                 return Unauthorized("Invalid refresh token.");
+            }
 
             return Ok(result);
         }
 
+        // Any authenticated user
         [Authorize]
         [HttpGet]
-        public IActionResult AuthenticatedOnlyEndpoint() 
+        public IActionResult AuthenticatedOnlyEndpoint()
         {
             return Ok("You are authenticated!");
         }
 
-        [Authorize(Roles = "Admin")]
+        // Only Admin
+        [Authorize(Policy = "AdminOnly")]
         [HttpGet("admin-only")]
         public IActionResult AdminOnlyEndpoint()
         {
             return Ok("You are an admin!");
         }
 
+        // Only Manager
+        [Authorize(Policy = "ManagerOnly")]
+        [HttpGet("manager-only")]
+        public IActionResult ManagerOnlyEndpoint()
+        {
+            return Ok("You are a manager!");
+        }
+
+        // TeamLead OR Developer
+        [Authorize(Policy = "TeamLeadOrDeveloper")]
+        [HttpGet("teamlead-or-developer")]
+        public IActionResult TeamLeadOrDeveloperEndpoint()
+        {
+            return Ok("You are a TeamLead or Developer!");
+        }
     }
 }

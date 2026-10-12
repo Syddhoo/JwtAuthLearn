@@ -33,6 +33,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+
+    options.AddPolicy("ManagerOnly", policy =>
+        policy.RequireRole("Manager"));
+
+    options.AddPolicy("TeamLeadOrDeveloper", policy =>
+        policy.RequireRole("TeamLead", "Developer"));
+});
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
@@ -46,6 +58,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
