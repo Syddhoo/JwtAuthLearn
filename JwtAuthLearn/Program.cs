@@ -1,6 +1,9 @@
+using JwtAuthLearn.Authorization;
 using JwtAuthLearn.Data;
 using JwtAuthLearn.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -38,14 +41,22 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", policy =>
         policy.RequireRole("Admin"));
 
-    options.AddPolicy("ManagerOnly", policy =>
-        policy.RequireRole("Manager"));
+    options.AddPolicy("ManagerOrHigher", policy =>
+        policy.RequireRole("Admin", "Manager"));
 
-    options.AddPolicy("TeamLeadOrDeveloper", policy =>
-        policy.RequireRole("TeamLead", "Developer"));
+    options.AddPolicy("TeamLeadDeveloperOrHigher", policy =>
+        policy.RequireRole(
+            "Admin",
+            "Manager",
+            "TeamLead",
+            "Developer"));
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddSingleton<
+    IAuthorizationMiddlewareResultHandler,
+    CustomAuthorizationMiddlewareResultHandler>();
 
 var app = builder.Build();
 

@@ -72,23 +72,23 @@ namespace JwtAuthLearn.Controllers
         [HttpGet("admin-only")]
         public IActionResult AdminOnlyEndpoint()
         {
-            return Ok("You are an admin!");
+            return Ok("You are Admin!");
         }
 
-        // Only Manager
-        [Authorize(Policy = "ManagerOnly")]
+        // Admin or Manager
+        [Authorize(Policy = "ManagerOrHigher")]
         [HttpGet("manager-only")]
         public IActionResult ManagerOnlyEndpoint()
         {
-            return Ok("You are a manager!");
+            return Ok("You are Manager or higher!");
         }
 
-        // TeamLead OR Developer
-        [Authorize(Policy = "TeamLeadOrDeveloper")]
+        // Admin, Manager, TeamLead, or Developer
+        [Authorize(Policy = "TeamLeadDeveloperOrHigher")]
         [HttpGet("teamlead-or-developer")]
         public IActionResult TeamLeadOrDeveloperEndpoint()
         {
-            return Ok("You are a TeamLead or Developer!");
+            return Ok("You are TeamLead/Developer or higher!");
         }
     }
 }
